@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="utf-8">
-<title>Homicidios Heatmap</title>
+<title>Homicidios 2022 Heatmap</title>
 <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
@@ -144,7 +144,7 @@ body { margin: 0; padding: 0; }
                 Mapa de homicidios intencionales por tipo de arma.
             </div>
             <div class="legend-item legend-item-par">
-                Enero-Marzo 2024.
+                Enero-Diciembre 2022.
             </div>
             <div class="legend-title">Intensidad</div>
             <div class="legend-item">
@@ -207,7 +207,7 @@ body { margin: 0; padding: 0; }
         // Heatmap layers also work with a vector tile source.
         map.addSource('homicidios2024', {
             'type': 'geojson',
-            'data': 'https://raw.githubusercontent.com/fmvaldezg/HomicidiosEC2024/main/data/hom_ec_2024.geojson'
+            'data': 'https://raw.githubusercontent.com/fmvaldezg/HomicidiosEC2022/main/data/hom_ec_2022.geojson'
         });
 
         map.addLayer(
