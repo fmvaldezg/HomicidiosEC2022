@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Homicidios Heatmap</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+<style>
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+body { margin: 0; padding: 0; }
+#map { position: absolute; top: 0; bottom: 0; width: 100%; }
+#legend {
+    position: absolute;
+    top: 10px;
+    left: 5px;
+    right:5px;
+    bottom:10px;
+    background: white;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 15px; 
+    z-index: 1;
+    border-radius: 3px;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    max-width: 310px; 
+}
+.map-title {
+    font-weight: bold;
+    font-size: 16px; 
+    margin-bottom: 5px;
+}
+.legend-title {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+.legend-item {
+    margin-bottom: 5px;
+}
+.legend-item-small {
+    font-size: 12px;
+}
+.legend-item-par {
+    font-size: 14px; 
+    text-align: left;
+    word-wrap: break-word; 
+}
+.legend-item-par2 {
+    font-size: 12px;
+}
+.legend-color-gradient {
+    width: 100px;
+    height: 20px;
+    background: linear-gradient(to right, rgba(33,102,172,0), rgb(103,169,207), rgb(209,229,240), rgb(253,219,199), rgb(239,138,98), rgb(178,24,43));
+    border: 1px solid #000;
+}
+.legend-color {
+    width: 10px;
+    height: 10px;
+    margin-right: 10px;
+    border: 1px solid #000;
+    display: inline-block;
+    vertical-align: middle;
+    border-radius: 50%;
+}
+.legend-text {
+    display: flex;
+    justify-content: space-between;
+    width: 100px;
+}
+
+.rounded-rect {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 50px -25px black;
+}
+
+.flex-center {
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flex-center.left {
+    left: 0px;
+}
+
+.flex-center.right {
+    right: 0px;
+}
+
+.sidebar-content {
+    position: absolute;
+    width: 95%;
+    height: 95%;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 32px;
+    color: gray;
+}
+
+.sidebar-toggle {
+    position: absolute;
+    width: 1.3em;
+    height: 1.3em;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar-toggle.left {
+    right: -1.5em;
+}
+
+.sidebar-toggle:hover {
+    color: #0aa1cf;
+    cursor: pointer;
+}
+
+.sidebar {
+    transition: transform 1s;
+    z-index: 1;
+    width: 305px;
+    height: 80%;
+}
+
+.left.collapsed {
+    transform: translateX(-295px);
+}
+
+</style>
+</head>
+<body>
+<div id="map">
+
+<div id="left" class="sidebar flex-center left collapsed">
+    <div class="sidebar-content rounded-rect flex-center">
+        <div id="legend">
+            <div class="map-title">Homicidios en Ecuador</div>
+            <div class="legend-item legend-item-par">
+                Mapa de homicidios intencionales por tipo de arma.
+            </div>
+            <div class="legend-item legend-item-par">
+                Enero-Marzo 2024.
+            </div>
+            <div class="legend-title">Intensidad</div>
+            <div class="legend-item">
+                <div class="legend-color-gradient"></div>
+            </div>
+            <div class="legend-item-small legend-text">
+                <span>Baja</span>
+                <span>Alta</span>
+            </div>
+            <div class="legend-title">Tipo de Arma</div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #377eb8;"></div>
+                <span class="legend-item-small">Arma blanca</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #4daf4a;"></div>
+                <span class="legend-item-small">Arma Contundente</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e41a1c;"></div>
+                <span class="legend-item-small">Arma de fuego</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #ff7f00;"></div>
+                <span class="legend-item-small">Constrictora</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #984ea3;"></div>
+                <span class="legend-item-small">Otros</span>
+            </div>
+            <div class="legend-title">Instrucciones</div>
+            <div class="legend-item legend-item-par">
+                Utiliza los controles de zoom para visualizar la localización de cada incidente.
+            </div>
+            <span></span>
+            <div class="legend-item-par2">
+                Fuente: Ministerio del Interior - 24 de Abril de 2024.
+            </div>
+        </div>
+        <div class="sidebar-toggle rounded-rect left" onclick="toggleSidebar('left')">
+            &rarr;
+        </div>
+    </div>
+</div>
+</div>
+
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiZm12YWxkZXpnODQiLCJhIjoiY2w5eWJzMzkwMDNiaDNvbGltamV1ajdvNiJ9.esyugI1HyBVPAQcRN551xw';
+    const map = new mapboxgl.Map({
+        container: 'map',
+        // Choose from Mapbox's core styles, or make your own style with Mapbox Studio
+        style: 'mapbox://styles/mapbox/dark-v11',
+        center: [-78.72980, -1.79096],
+        zoom: 6.62
+    });
+
+    map.on('load', () => {
+        // Add a geojson point source.
+        // Heatmap layers also work with a vector tile source.
+        map.addSource('homicidios2024', {
+            'type': 'geojson',
+            'data': 'https://raw.githubusercontent.com/fmvaldezg/HomicidiosEC2024/main/data/hom_ec_2024.geojson'
+        });
+
+        map.addLayer(
+            {
+                'id': 'homicidios-heat',
+                'type': 'heatmap',
+                'source': 'homicidios2024',
+                'maxzoom': 9,
+                'paint': {
+                    'heatmap-weight': 0.3,
+                    'heatmap-intensity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0,
+                        1,
+                        9,
+                        3
+                    ],
+                    'heatmap-color': [
+                        'interpolate',
+                        ['linear'],
+                        ['heatmap-density'],
+                        0,
+                        'rgba(33,102,172,0)',
+                        0.2,
+                        'rgb(103,169,207)',
+                        0.4,
+                        'rgb(209,229,240)',
+                        0.6,
+                        'rgb(253,219,199)',
+                        0.8,
+                        'rgb(239,138,98)',
+                        1,
+                        'rgb(178,24,43)'
+                    ],
+                    'heatmap-radius': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        0,
+                        2,
+                        9,
+                        20
+                    ],
+                    'heatmap-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        7,
+                        1,
+                        9,
+                        0
+                    ]
+                }
+            },
+            'waterway-label'
+        );
+
+        map.addLayer(
+            {
+                'id': 'homicidios-point',
+                'type': 'circle',
+                'source': 'homicidios2024',
+                'minzoom': 7.5,
+                'paint': {
+                    'circle-radius': {
+                        'base': 2,
+                        'stops': [
+                            [12, 3],
+                            [15, 15],
+                            [19, 30]
+                        ]
+                    },
+                    'circle-color': [
+                        'match',
+                        ['get', 'Arma'],
+                        'ARMA BLANCA',
+                        '#377eb8',
+                        'ARMA CONTUNDENTE',
+                        '#4daf4a',
+                        'ARMA DE FUEGO',
+                        '#e41a1c',
+                        'CONSTRICTORA',
+                        '#ff7f00',
+                        'OTROS',
+                        '#984ea3',
+                        '#000'
+                    ],
+                    'circle-stroke-color': 'white',
+                    'circle-stroke-width': 0.1,
+                    'circle-opacity': [
+                        'interpolate',
+                        ['linear'],
+                        ['zoom'],
+                        7,
+                        0,
+                        8,
+                        1
+                    ],
+                    'circle-opacity': 0.6,
+                }
+            },
+            'waterway-label'
+        );
+    });
+
+    // Ensure the map control is added correctly
+    map.addControl(new mapboxgl.NavigationControl(), 'top-right');
+    map.setMinZoom(6.5);
+
+    function toggleSidebar(id) {
+        const elem = document.getElementById(id);
+        // Add or remove the 'collapsed' CSS class from the sidebar element.
+        // Returns boolean "true" or "false" whether 'collapsed' is in the class list.
+        const collapsed = elem.classList.toggle('collapsed');
+        const padding = {};
+        // 'id' is 'right' or 'left'. When run at start, this object looks like: '{left: 300}';
+        padding[id] = collapsed ? 0 : 300; // 0 if collapsed, 300 px if not. This matches the width of the sidebars in the .sidebar CSS class.
+        // Use `map.easeTo()` with a padding option to adjust the map's center accounting for the position of sidebars.
+        map.easeTo({
+            padding: padding,
+            duration: 1000 // In ms. This matches the CSS transition duration property.
+        });
+    }
+
+    map.on('load', () => {
+        toggleSidebar('left');
+    });
+</script>
+
+</body>
+</html>
